@@ -1,3 +1,4 @@
+import joblib
 import cv2
 import PIL
 import numpy as np
@@ -5,10 +6,19 @@ from sklearn.svm import LinearSVC
 
 class Model:
     
+    
     def __init__(self):
         self.model = LinearSVC(max_iter=1000)
 
-        self.model = LinearSVC()
+        # self.model = LinearSVC()
+        
+        import os
+        if os.path.exists("trained_model.pkl"):
+            self.model = joblib.load('trained_model.pkl')
+            print("Modelo cargado desde el archivo trained_model.pkl")
+        else:
+            self.model = LinearSVC()
+
         
     def train_model(self, counters):
         img_list = np.array([])
@@ -30,6 +40,8 @@ class Model:
         self.model.fit(img_list, class_list)
         print("Modelo entrenado exitosamente")
         
+        joblib.dump(self.model, 'trained_model.pkl')
+        print("Modelo entrenado y guardado exitosamente en el archivo trained_model.pkl")
     def predict(self, frame):
         frame = frame[1]
         cv2.imwrite("frame.jpg", cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY))

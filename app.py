@@ -5,12 +5,26 @@ import cv2
 import camera
 import model
 import playsound
+import time
 
 class App:
+    import time
+
+    def countdown(self, seconds):
+        for i in range(seconds, 0, -1):
+            print(f"Descansando: {i} segundos restantes")
+            time.sleep(1)
+
+    
+    def get_rep_limit(self):
+        self.rep_limit = int(input("Ingresa el límite de repeticiones: "))
+
     def __init__(self):
         self.window = tk.Tk()
         self.window.title = "Contador de repeticiones de curl de biceps"
-        
+        #limite
+        self.rep_limit = 0
+
         self.counters = [1, 1]
         self.rep_counter = 0
         
@@ -23,6 +37,9 @@ class App:
         self.counting_enabled = False
 
         self.camera = camera.Camera()
+        
+        #limite
+        self.get_rep_limit()
         
         self.init_gui()
         
@@ -48,7 +65,7 @@ class App:
         self.btn_train = tk.Button(self.window, text="Entrenar modelo", width=50, command=lambda: self.model.train_model(self.counters))
         self.btn_train.pack(anchor=tk.CENTER, expand=True)
     
-        self.btn_reset = tk.Button(self.window, text="Reiniciar", width=50, command=self.reset)
+        self.btn_reset = tk.Button(self.window, text="Reiniciar/Parar", width=50, command=self.reset)
         self.btn_reset.pack(anchor=tk.CENTER, expand=True)
     
         self.counter_label = tk.Label(self.window, text=f"{self.rep_counter}")
@@ -67,7 +84,7 @@ class App:
             self.extended, self.contracted = False, False
             self.rep_counter += 1
                 
-            if self.rep_counter % 10 == 0:
+            if self.rep_counter % self.rep_limit == 0:
                 playsound.playsound("sound/up.mp3") 
             else:
                 playsound.playsound("sound/beep2.mp3")
@@ -93,6 +110,10 @@ class App:
             if prediction == 2:
                 self.contracted = True
                 self.last_prediction = 2
+        
+        #limite
+        if self.rep_counter == self.rep_limit:
+            self.countdown(15)
 
     def counting_toggle(self):
         self.counting_enabled = not self.counting_enabled
