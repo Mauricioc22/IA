@@ -8,3 +8,4 @@ frame.jpg
 __pycache__
 
 trained_model.pkl
+__pycache__/
