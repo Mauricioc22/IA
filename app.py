@@ -9,24 +9,62 @@ import time
 
 class App:
     import time
-
-    def countdown(self, seconds):
-        for i in range(seconds, 0, -1):
-            print(f"Descansando: {i} segundos restantes")
-            time.sleep(1)
-
     
     def get_rep_limit(self):
-        self.rep_limit = int(input("Ingresa el límite de repeticiones: "))
+        self.rep_limit = int(self.rep_limit_entry.get())
+        self.rep_limit_entry.pack_forget()
+        self.rep_limit_btn.pack_forget()
+
+
+    # def reinicio(self):
+    #     self.btn_toggleauto.invoke()
+    #     print("Entro a reinicio")
+
+
+    def countdown(self, seconds):
+        self.status = False
+
+        self.counting_enabled = False
+        for i in range(seconds, -1, -1):
+            self.countdown_label.config(text=f"Descansando: {i} segundos restantes")
+            self.window.after(1000, self.countdown, i-1)
+            if i >0 and self.rep_counter > 0:
+                self.countdown_label.config(text=f"Alto, descansa un poco") 
+                self.rep_counter = 0               
+            #if i == 0:
+                
+                # self.status = True
+                # print(self.status)
+                #self.reinicio()
+            if i == 0:
+                self.countdown_label.config(text=f"Continua tu entrenamiento!") 
+
+
+            break
+        self.btn_toggleauto.invoke()
+        #self.window.after(1000*seconds, self.btn_toggleauto.invoke)
+
+        
+
+            
+
+    
+    # def get_rep_limit(self):
+    #     self.rep_limit = int(input("Ingresa el límite de repeticiones: "))
 
     def __init__(self):
         self.window = tk.Tk()
         self.window.title = "Contador de repeticiones de curl de biceps"
         #limite
         self.rep_limit = 0
+        
+        #Estado
+        self.status = False
 
         self.counters = [1, 1]
         self.rep_counter = 0
+        self.rep_counter_temp = 0
+        self.set_counter = 0
         
         self.extended = False
         self.contracted = False
@@ -39,7 +77,8 @@ class App:
         self.camera = camera.Camera()
         
         #limite
-        self.get_rep_limit()
+        #self.get_rep_limit()
+        
         
         self.init_gui()
         
@@ -50,7 +89,7 @@ class App:
         self.window.mainloop()
         
     def init_gui(self):
-        self.canvas = tk.Canvas(self.window, width=self.camera.width, height=self.camera.height)
+        self.canvas = tk.Canvas(self.window, width=self.camera.width*0.8, height=self.camera.height*0.8)
         self.canvas.pack()
         
         self.btn_toggleauto = tk.Button(self.window, text="Iniciar conteo", width=50, command=self.counting_toggle)
@@ -72,6 +111,19 @@ class App:
         self.counter_label.config(font=("Arial", 24))
         self.counter_label.pack(anchor=tk.CENTER, expand=True)
     
+        #ingresar limite en interfaz grafica
+        self.rep_limit_entry = tk.Entry(self.window)
+        self.rep_limit_entry.pack(anchor=tk.CENTER, expand=True)
+
+        self.rep_limit_btn = tk.Button(self.window, text="Confirmar límite", width=50, command=self.get_rep_limit)
+        self.rep_limit_btn.pack(anchor=tk.CENTER, expand=True)
+    
+        self.countdown_label = tk.Label(self.window, text="")
+        self.countdown_label.config(font=("Arial", 24))
+        self.countdown_label.pack(anchor=tk.CENTER, expand=True)
+
+    
+    
     def update(self):
         if self.counting_enabled:
             # self.predict()
@@ -85,12 +137,15 @@ class App:
             self.rep_counter += 1
                 
             if self.rep_counter % self.rep_limit == 0:
-                playsound.playsound("sound/up.mp3") 
+                playsound.playsound("sound/up.mp3")
+                
+                self.set_counter += 1
+                
             else:
                 playsound.playsound("sound/beep2.mp3")
             
-
-        self.counter_label.config(text=f"{self.rep_counter}")
+        
+        self.counter_label.config(text=f"Sets: {self.set_counter} | Reps: {self.rep_counter}")
             
         ret, frame = self.camera.get_frame()
         if ret:
@@ -113,6 +168,7 @@ class App:
         
         #limite
         if self.rep_counter == self.rep_limit:
+            self.rep_counter = 0
             self.countdown(15)
 
     def counting_toggle(self):
